@@ -1,23 +1,58 @@
 var demoChat = {
+    comms : {
+        stompClient: null,
+
+        connect: function(rcvMessage) {
+           var socket = new SockJS('/message');
+           demoChat.comms.stompClient = Stomp.over(socket);
+           demoChat.comms.stompClient.connect({}, function(frame) {
+               console.log('Connected: ' + frame);
+               demoChat.comms.stompClient.subscribe('/topic/chat', rcvMessage, {});
+           }, function(){
+
+           });
+        },
+
+        disconnect: function() {
+            if (demoChat.comms.stompClient != null) {
+                demoChat.comms.stompClient.disconnect();
+                console.log("Disconnected");
+            }
+        },
+
+        sendMessage: function(email, text) {
+            demoChat.comms.stompClient.send("/app/message", {}, JSON.stringify({'text': text, 'email': email }));
+        },
+
+
+
+    },
     gui : {
         email: "",
         login: function(){
             demoChat.gui.email = $("#email").val();
             $("#login").hide();
             $("#chat").show();
+            demoChat.comms.connect(demoChat.gui.receiveMessage);
+        },
+        receiveMessage: function(message) {
+            console.log("received");
+            console.log(message);
+            var jsonMsg = JSON.parse(message.body);
+            demoChat.gui.showMessage(jsonMsg.email, jsonMsg.text);
         },
         sendMessage: function(){
             var text = $("#text").val();
             $("#text").val("");
-            demoChat.gui.showMessage(demoChat.gui.email, text);
+            demoChat.comms.sendMessage(demoChat.gui.email, text);
         },
         showMessage: function(email, text){
             var gravatar = demoChat.gui.getGravatar(email);
             var message;
             if (email != demoChat.gui.email) {
-                message = $("<div class='message'><span><img src='" + gravatar + "'/>&nbsp;<span>" + text + "</span></div>");
+                message = $("<div class='message'><span><img title='" + email + "' src='" + gravatar + "'/>&nbsp;<span>" + text + "</span></div>");
             } else {
-                message = $("<div class='message right'><span>" + text + "&nbsp;</span><span><img src='" + gravatar + "'/></div>");
+                message = $("<div class='message right'><span>" + text + "&nbsp;</span><span><img title='" + email + "' src='" + gravatar + "'/></div>");
             }
             $("#history").append(message);
             $("#history").scrollTop ($("#history")[0].scrollHeight);
