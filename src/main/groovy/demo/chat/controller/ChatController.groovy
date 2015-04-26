@@ -1,10 +1,9 @@
 package demo.chat.controller
-
 import demo.chat.domain.Message
+import demo.chat.service.MessageService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
-import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.ResponseBody
 @Controller
 class ChatController {
     @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate
+    private MessageService messageService
 
     @RequestMapping("/hello")
     public @ResponseBody String hello() {
@@ -26,7 +25,7 @@ class ChatController {
                 email: message.email,
                 text: message.text
         )
-        simpMessagingTemplate.convertAndSend("/topic/chat".toString(), mess)
+        messageService.sendMessage(message)
     }
 
 }
