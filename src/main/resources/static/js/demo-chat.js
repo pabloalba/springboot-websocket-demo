@@ -9,8 +9,8 @@ var demoChat = {
                console.log('Connected: ' + frame);
                demoChat.comms.stompClient.subscribe('/topic/chat', rcvMessage, {});
                demoChat.comms.stompClient.subscribe('/topic/events', rcvEvent, {});
-           }, function(){
-
+           }, function(error){
+                alert(error.headers.message);
            });
         },
 

@@ -1,12 +1,14 @@
 package demo.chat
 
 import demo.chat.event.PresenceEventListener
+import demo.chat.interceptor.ChannelInterceptor
 import demo.chat.repository.ParticipantRepository
 import demo.chat.service.MessageService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.messaging.simp.SimpMessagingTemplate
+import org.springframework.messaging.simp.config.ChannelRegistration
 import org.springframework.messaging.simp.config.MessageBrokerRegistry
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker
@@ -35,6 +37,13 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     @Bean
     public PresenceEventListener presenceEventListener(SimpMessagingTemplate messagingTemplate) {
         return new PresenceEventListener(participantRepository: participantRepository, messageService: messageService)
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.setInterceptors(
+                new ChannelInterceptor(
+                        participantRepository: participantRepository))
     }
 
 }
